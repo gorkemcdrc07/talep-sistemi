@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\src\\supabaseClient.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\supabaseClient.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     },
@@ -50,7 +54,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 8,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -62,7 +66,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 0,
+              "Title": "package.json",
+              "DocumentMoniker": "C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\package.json",
+              "RelativeDocumentMoniker": "package.json",
+              "ToolTip": "C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\package.json",
+              "RelativeToolTip": "package.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-08-18T12:04:08.221Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
               "Title": "Requests.css",
               "DocumentMoniker": "C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\src\\pages\\Requests.css",
               "RelativeDocumentMoniker": "src\\pages\\Requests.css",
@@ -74,7 +91,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "Requests.js",
               "DocumentMoniker": "C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\src\\pages\\Requests.js",
               "RelativeDocumentMoniker": "src\\pages\\Requests.js",
@@ -86,7 +103,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "NewRequest.js",
               "DocumentMoniker": "C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\src\\pages\\NewRequest.js",
               "RelativeDocumentMoniker": "src\\pages\\NewRequest.js",
@@ -94,12 +111,11 @@
               "RelativeToolTip": "src\\pages\\NewRequest.js",
               "ViewState": "AgIAAIUBAAAAAAAAAAAAAJMBAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-08-15T19:04:53.501Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-15T19:04:53.501Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "NewRequest.css",
               "DocumentMoniker": "C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\src\\pages\\NewRequest.css",
               "RelativeDocumentMoniker": "src\\pages\\NewRequest.css",
@@ -107,12 +123,11 @@
               "RelativeToolTip": "src\\pages\\NewRequest.css",
               "ViewState": "AgIAAFEBAAAAAAAAAAAiwIwBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
-              "WhenOpened": "2025-08-15T19:41:05.449Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-15T19:41:05.449Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "Inbox.css",
               "DocumentMoniker": "C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\src\\pages\\Inbox.css",
               "RelativeDocumentMoniker": "src\\pages\\Inbox.css",
@@ -120,12 +135,11 @@
               "RelativeToolTip": "src\\pages\\Inbox.css",
               "ViewState": "AgIAAHoCAAAAAAAAAAAiwJkCAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
-              "WhenOpened": "2025-08-15T19:02:41.751Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-15T19:02:41.751Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Inbox.js",
               "DocumentMoniker": "C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\src\\pages\\Inbox.js",
               "RelativeDocumentMoniker": "src\\pages\\Inbox.js",
@@ -133,12 +147,11 @@
               "RelativeToolTip": "src\\pages\\Inbox.js",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACsAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-08-15T19:02:22.966Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-15T19:02:22.966Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "supabaseClient.js",
               "DocumentMoniker": "C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\src\\supabaseClient.js",
               "RelativeDocumentMoniker": "src\\supabaseClient.js",
@@ -151,7 +164,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "Login.css",
               "DocumentMoniker": "C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\src\\pages\\Login.css",
               "RelativeDocumentMoniker": "src\\pages\\Login.css",
@@ -159,12 +172,11 @@
               "RelativeToolTip": "src\\pages\\Login.css",
               "ViewState": "AgIAAKEBAAAAAAAAAAAiwNwBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
-              "WhenOpened": "2025-08-15T14:37:28.949Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-15T14:37:28.949Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "Login.js",
               "DocumentMoniker": "C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\src\\pages\\Login.js",
               "RelativeDocumentMoniker": "src\\pages\\Login.js",
@@ -172,12 +184,11 @@
               "RelativeToolTip": "src\\pages\\Login.js",
               "ViewState": "AgIAADABAAAAAAAAAAAAAGkBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-08-15T14:35:30.428Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-15T14:35:30.428Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "App.js",
               "DocumentMoniker": "C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\src\\App.js",
               "RelativeDocumentMoniker": "src\\App.js",
@@ -185,8 +196,7 @@
               "RelativeToolTip": "src\\App.js",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAADUAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-08-15T14:35:09.844Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-15T14:35:09.844Z"
             }
           ]
         }

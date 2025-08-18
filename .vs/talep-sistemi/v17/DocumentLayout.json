@@ -72,7 +72,7 @@
               "RelativeDocumentMoniker": "package.json",
               "ToolTip": "C:\\Users\\Gorkem.Cadirci\\talep-sistemi\\package.json",
               "RelativeToolTip": "package.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAQAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2025-08-18T12:04:08.221Z",
               "EditorCaption": ""
@@ -159,8 +159,7 @@
               "RelativeToolTip": "src\\supabaseClient.js",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAD2AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-08-15T18:03:40.363Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-15T18:03:40.363Z"
             },
             {
               "$type": "Document",
