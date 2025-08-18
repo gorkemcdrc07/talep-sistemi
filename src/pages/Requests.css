@@ -1,0 +1,262 @@
+﻿/* Sayfa iskeleti */
+.rq {
+    --bg: #0b0d12;
+    --card: #11151c;
+    --muted: #94a3b8;
+    --text: #e5e7eb;
+    --border: #1f2937;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    color: var(--text);
+    min-height: 100vh;
+    background: linear-gradient(180deg, #0b0d12 0%, #0e131b 100%);
+}
+
+.rq-top {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 20px 12px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+    .brand .logo {
+        font-size: 28px;
+        line-height: 1;
+    }
+
+    .brand .bt h1 {
+        margin: 0;
+        font-size: 24px;
+    }
+
+.muted {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* Komut alanı */
+.cmd {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.search-wrap {
+    position: relative;
+}
+
+.search {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 10px;
+    min-width: 260px;
+}
+
+.toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.btn {
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    .btn.primary {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+
+        .btn.primary:hover {
+            background: var(--primary-hover);
+        }
+
+/* İçerik */
+.rq-body {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 20px 40px;
+}
+
+.rq-skel, .rq-alert, .empty {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+}
+
+    .rq-alert.err {
+        border-color: #ef4444;
+        color: #fecaca;
+    }
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+/* Tablo */
+.rq-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+    .rq-table thead th {
+        text-align: left;
+        background: #0f1420;
+        color: #cbd5e1;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .rq-table tbody td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+    }
+
+    .rq-table tbody tr:hover {
+        background: #121826;
+    }
+
+.title {
+    font-weight: 600;
+}
+
+.mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Rozet ve Pill */
+.badge {
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #131a28;
+    font-size: 12px;
+}
+
+    .badge.s-yeni {
+        background: #132026;
+        border-color: #12333c;
+        color: #9bd5e1;
+    }
+
+    .badge.s-sıraya-alındı, .badge.s-siraya-alindi {
+        background: #1b1f2a;
+        border-color: #2a3855;
+        color: #a7b9f7;
+    }
+
+    .badge.s-işleme-alındı, .badge.s-isleme-alindi {
+        background: #1b251a;
+        border-color: #2b4b2d;
+        color: #b6e3b6;
+    }
+
+    .badge.s-test-ediliyor {
+        background: #261d1a;
+        border-color: #5d2a20;
+        color: #f4b8a8;
+    }
+
+    .badge.s-tamamlandı, .badge.s-tamamlandi {
+        background: #141c14;
+        border-color: #2d442d;
+        color: #b8e6b8;
+    }
+
+.pill {
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12px;
+    display: inline-block;
+}
+
+    .pill.p1 {
+        background: #3b1d1d;
+        color: #fecaca;
+    }
+
+    .pill.p2 {
+        background: #2f2a18;
+        color: #fde68a;
+    }
+
+    .pill.p3, .pill.undefined {
+        background: #1d2a38;
+        color: #bfdbfe;
+    }
+
+/* Alt açıklama */
+.legend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px 14px;
+    color: var(--muted);
+}
+
+/* Responsive */
+@media (max-width: 840px) {
+    .rq-top {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .cmd {
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .search {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .rq-table thead {
+        display: none;
+    }
+
+    .rq-table tbody tr {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 12px 10px;
+    }
+
+    .rq-table tbody td {
+        border: 0;
+        padding: 6px 10px;
+    }
+
+    .mono {
+        opacity: .8;
+    }
+}
