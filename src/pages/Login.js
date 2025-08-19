@@ -39,16 +39,30 @@ export default function Login() {
     // === Ortak: profil & yönlendirme ===
     function handlePostAuth(profileData) {
         const isEditor = trUp(profileData.birim) === "İŞ VE SÜREÇ GELİŞTİRME";
-        const profile = { ...profileData, isEditor };
+        const emailLc = (profileData.email || "").toLowerCase().trim();
 
+        const profile = { ...profileData, email: emailLc, isEditor };
+
+        // auth bilgilerini sakla
         localStorage.setItem("auth_token", "ok-" + Date.now());
         localStorage.setItem("user_profile", JSON.stringify(profile));
+        localStorage.setItem("user_email", emailLc); // App.jsx de okuyabilsin diye
 
         showNotice("success", `Hoş geldin ${profileData.kullanici || profileData.email}!`);
 
         setTimeout(() => {
-            if (isEditor) navigate("/inbox", { replace: true });
-            else navigate("/requests", { replace: true });
+            // Kerem özel case -> TeamMonitor
+            if (emailLc === "kerem.ozturk@odaklojistik.com.tr") {
+                navigate("/teammonitor", { replace: true });
+                return;
+            }
+
+            // Diğer kullanıcılar
+            if (isEditor) {
+                navigate("/inbox", { replace: true });
+            } else {
+                navigate("/requests", { replace: true });
+            }
         }, 400);
     }
 

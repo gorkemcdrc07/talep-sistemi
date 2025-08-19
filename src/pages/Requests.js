@@ -261,15 +261,6 @@ export default function Requests() {
                                 ))}
                             </tbody>
                         </table>
-
-                        <div className="legend">
-                            <span className="pill p1">P1</span>
-                            <span className="pill p2">P2</span>
-                            <span className="pill p3">P3</span>
-                            <span className="muted">
-                                – Sıralama: Durum → (Sıraya Alındı ise) Kişisel sıra → Kolon sırası → Son güncelleme
-                            </span>
-                        </div>
                     </div>
                 )}
             </div>

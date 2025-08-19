@@ -21,6 +21,20 @@ const STATUS_DISPLAY = {
     [STATUS.TestEdiliyor]: "Test Ediliyor",
     [STATUS.Tamamlandi]: "Tamamlandı",
 };
+// Bu butonu görebilecek kullanıcılar
+const ALLOWED_TALEP_LISTESI = new Set([
+    "GÖRKEM ÇADIRCI",
+    "FURKAN BİLGİLİ",
+    "YAĞIZ EFE BULUTCU",
+]);
+
+function canShowTalepListButton(nameOrEmail) {
+    const raw = String(nameOrEmail || "").trim();
+    if (!raw) return false;
+    const upper = raw.toLocaleUpperCase("tr-TR"); // Türkçe uppercase
+    return ALLOWED_TALEP_LISTESI.has(upper);
+}
+
 
 const BOARD_COLUMNS = [
     { key: STATUS.Yeni, title: STATUS_DISPLAY[STATUS.Yeni] },
@@ -88,6 +102,11 @@ export default function InboxModern() {
     }, []);
     const myEmail = me?.email || "";
     const myName = (me?.kullanici || "").trim();
+    const canSeeTalepListesi = useMemo(
+        () => canShowTalepListButton(myName || myEmail),
+        [myName, myEmail]
+    );
+
 
     const [view, setView] = useState("board"); // "board" | "list"
     const [q, setQ] = useState("");
@@ -209,9 +228,12 @@ export default function InboxModern() {
         const { source, destination, draggableId } = result;
         if (!destination) return;
 
+        // Aynı yere bırakıldıysa çık
+        if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+
         const byStatus = groupByStatus([...rows]);
-        const srcArr = byStatus[source.droppableId];
-        const dstArr = byStatus[destination.droppableId];
+        const srcArr = byStatus[source.droppableId] || [];
+        const dstArr = byStatus[destination.droppableId] || [];
 
         const idx = srcArr.findIndex((i) => String(i.id) === String(draggableId));
         if (idx === -1) return;
@@ -222,7 +244,13 @@ export default function InboxModern() {
             return;
         }
 
-        // UI
+        // Tamamlandı → başka kolon giderken onay iste
+        if (source.droppableId === STATUS.Tamamlandi && destination.droppableId !== STATUS.Tamamlandi) {
+            const ok = window.confirm("Bu kartı 'Tamamlandı' kolonundan çıkarmak istediğinize emin misiniz?");
+            if (!ok) return;
+        }
+
+        // UI hareket
         srcArr.splice(idx, 1);
         const destIndex = destination.index;
         dstArr.splice(destIndex, 0, item);
@@ -232,15 +260,28 @@ export default function InboxModern() {
         const newKolonSira = between(prev, next);
         const newDurum = destination.droppableId;
 
+        // Hedef Tamamlandı ise tamamlanma_tarihi ver
+        const completionIso = newDurum === STATUS.Tamamlandi ? new Date().toISOString() : undefined;
+
         setRows((prevRows) =>
             sortRows(
-                prevRows.map((r) => (r.id === item.id ? { ...r, durum: newDurum, kolon_sira: newKolonSira } : r)),
+                prevRows.map((r) =>
+                    r.id === item.id
+                        ? { ...r, durum: newDurum, kolon_sira: newKolonSira, ...(completionIso ? { tamamlanma_tarihi: completionIso } : {}) }
+                        : r
+                ),
                 view
             )
         );
-        if (active?.id === item.id) setActive({ ...item, durum: newDurum, kolon_sira: newKolonSira });
+        if (active?.id === item.id) {
+            setActive({ ...item, durum: newDurum, kolon_sira: newKolonSira, ...(completionIso ? { tamamlanma_tarihi: completionIso } : {}) });
+        }
 
-        await updateRow(item.id, { durum: newDurum, kolon_sira: newKolonSira });
+        await updateRow(item.id, {
+            durum: newDurum,
+            kolon_sira: newKolonSira,
+            ...(completionIso ? { tamamlanma_tarihi: completionIso } : {}),
+        });
     }
 
     /* ---------- DnD: Liste (SADECE Sıraya Alındı) ---------- */
@@ -312,17 +353,40 @@ export default function InboxModern() {
             return;
         }
 
+        // Tamamlandı → başka statü geçişinde onay iste
+        if (row.durum === STATUS.Tamamlandi && statusKey !== STATUS.Tamamlandi) {
+            const ok = window.confirm("Bu kartı 'Tamamlandı' durumundan çıkarmak istediğinize emin misiniz?");
+            if (!ok) return;
+        }
+
         const byStatus = groupByStatus(rows);
-        const dst = byStatus[statusKey];
+        const dst = byStatus[statusKey] || [];
         const last = dst[dst.length - 1]?.kolon_sira;
         const newKolonSira = between(last, undefined);
 
-        setRows((prevRows) =>
-            sortRows(prevRows.map((r) => (r.id === id ? { ...r, durum: statusKey, kolon_sira: newKolonSira } : r)), view)
-        );
-        if (active?.id === id) setActive((prev) => ({ ...prev, durum: statusKey, kolon_sira: newKolonSira }));
+        const completionIso = statusKey === STATUS.Tamamlandi ? new Date().toISOString() : undefined;
 
-        await updateRow(id, { durum: statusKey, kolon_sira: newKolonSira });
+        setRows((prevRows) =>
+            sortRows(
+                prevRows.map((r) =>
+                    r.id === id
+                        ? { ...r, durum: statusKey, kolon_sira: newKolonSira, ...(completionIso ? { tamamlanma_tarihi: completionIso } : {}) }
+                        : r
+                ),
+                view
+            )
+        );
+        if (active?.id === id) {
+            setActive((prev) =>
+                prev ? { ...prev, durum: statusKey, kolon_sira: newKolonSira, ...(completionIso ? { tamamlanma_tarihi: completionIso } : {}) } : prev
+            );
+        }
+
+        await updateRow(id, {
+            durum: statusKey,
+            kolon_sira: newKolonSira,
+            ...(completionIso ? { tamamlanma_tarihi: completionIso } : {}),
+        });
     }
 
     async function markDone(id) {
@@ -422,6 +486,16 @@ export default function InboxModern() {
                             Sıramı Kaydet
                         </button>
                     )}
+                    {canSeeTalepListesi && (
+                        <button
+                            className="btn ghost"
+                            onClick={() => navigate(`/requests?assignee=${encodeURIComponent(myEmail)}`)}
+                            title="Taleplerim"
+                        >
+                            Taleplerim
+                        </button>
+                    )}
+
 
                     <Link to="/newrequest" className="btn primary">+ Yeni Talep</Link>
                     <div className="chip">{(me?.kullanici || me?.email) || ""}</div>
@@ -466,10 +540,10 @@ export default function InboxModern() {
                                                                     me={myEmail}
                                                                 />
                                                             </div>
-
                                                         )}
                                                     </Draggable>
                                                 ))}
+
                                                 {provided.placeholder}
                                             </div>
                                         </div>
@@ -619,11 +693,27 @@ export default function InboxModern() {
 function Card({ data, onOpen, me }) {
     const mine = data.atanan_email && data.atanan_email === me;
     const prio = String(data.oncelik || "P3").toLowerCase(); // p1|p2|p3
+    const requester = data.talep_eden_kullanici || data.talep_eden_email || "—";
+    const dueText = data.bitis_tarihi ? fmtDate(data.bitis_tarihi) : "—";
+    const isDone = data.durum === STATUS.Tamamlandi;
+    const doneText = data.tamamlanma_tarihi ? fmtTime(data.tamamlanma_tarihi) : null;
 
     return (
         <div className={`card ${mine ? "mine" : ""} prio-${prio}`} onClick={onOpen}>
             <div className="c-title">#{data.id} — {data.baslik}</div>
             <div className="c-desc">{data.aciklama || "—"}</div>
+
+            <div className="c-meta" style={{ marginTop: 6, opacity: 0.9 }}>
+                <span>İsteyen: <b>{requester}</b></span>
+                <span> · </span>
+                <span>Son: <b>{dueText}</b></span>
+            </div>
+
+            {isDone && (
+                <div className="c-meta" style={{ marginTop: 4, opacity: 0.9 }}>
+                    <span>Tamamlanma: <b>{doneText || "—"}</b></span>
+                </div>
+            )}
         </div>
     );
 }
