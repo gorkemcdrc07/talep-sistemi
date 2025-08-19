@@ -46,7 +46,7 @@ function between(prev, next) {
 /* URL’lerin sonundaki ), ].,!?;: gibi işaretleri linke dahil etme */
 function linkifyJsx(text) {
     const t = String(text ?? "");
-    const re = /(https?:\/\/[^\s<>'"\])]+)([)\].,!?;:]*)/g;
+    const re = /(https?:\/\/[^\s<'"\])]+)([)\].,!?;:]*)/g;
     const nodes = [];
     let last = 0, m;
     while ((m = re.exec(t)) !== null) {
@@ -65,7 +65,7 @@ function renderDescription(text) {
     const s = String(text ?? "");
     const parts = [];
     let i = 0, m;
-    const imgRe = /!\[([^\]]*)\]\((https?:\/\/[^\s<>'"\])]+)\)/g;
+    const imgRe = /!\[([^\]]*)\]\((https?:\/\/[^\s<'"\])]+)\)/g;
     while ((m = imgRe.exec(s)) !== null) {
         const [full, alt, src] = m;
         if (m.index > i) parts.push(<span key={`t${i}`}>{linkifyJsx(s.slice(i, m.index))}</span>);
@@ -243,27 +243,28 @@ export default function InboxModern() {
         await updateRow(item.id, { durum: newDurum, kolon_sira: newKolonSira });
     }
 
-    /* ---------- DnD: Liste ---------- */
+    /* ---------- DnD: Liste (SADECE Sıraya Alındı) ---------- */
     async function onListDragEnd(result) {
         const { destination, draggableId } = result;
         if (!destination) return;
 
-        const listMine = filtered;
-        const from = listMine.findIndex((i) => String(i.id) === String(draggableId));
-        if (from === -1) return;
-        const moved = listMine[from];
-        listMine.splice(from, 1);
+        // Yalnızca Sıraya Alındı statüsündekiler sıralanabilir
+        const listEligible = filteredEligible; // closure'dan
+        const from = listEligible.findIndex((i) => String(i.id) === String(draggableId));
+        if (from === -1) return; // diğer statüler için sürükleme yok
+        const moved = listEligible[from];
+        listEligible.splice(from, 1);
         const to = destination.index;
-        listMine.splice(to, 0, moved);
+        listEligible.splice(to, 0, moved);
 
         setRows((prevRows) => {
-            const orderMap = new Map(listMine.map((r, i) => [r.id, i + 1]));
+            const orderMap = new Map(listEligible.map((r, i) => [r.id, i + 1]));
             const nextRows = prevRows.map((r) => (orderMap.has(r.id) ? { ...r, atanan_sira: orderMap.get(r.id) } : r));
             return sortRows(nextRows, view);
         });
 
         setDirty(true);
-        setMsg("Kişisel kuyruğunda kaydedilmemiş değişiklikler var.");
+        setMsg("Sıraya Alındı listesindeki kişisel sırada kaydedilmemiş değişiklikler var.");
     }
 
     /* ---------- "Sırayı Kaydet" (kişisel) ---------- */
@@ -275,22 +276,24 @@ export default function InboxModern() {
             setErr("");
             setMsg("");
 
-            const ids = filtered.map((r) => Number(r.id));
+            const ids = filteredEligible.map((r) => Number(r.id));
             if (ids.length === 0) return;
 
             const { error } = await supabase.rpc("set_assignee_order", { p_email: myEmail, p_ids: ids });
             if (error) {
+                // stored proc yoksa tek tek yaz
                 for (let i = 0; i < ids.length; i++) {
                     const id = ids[i];
                     const { error: upErr } = await supabase
                         .from("talepler")
                         .update({ atanan_sira: i + 1, guncelleme_tarihi: new Date().toISOString() })
                         .eq("id", id)
-                        .eq("atanan_email", myEmail);
+                        .eq("atanan_email", myEmail)
+                        .eq("durum", STATUS.SirayaAlindi);
                     if (upErr) throw upErr;
                 }
             }
-            setMsg("Kişisel sıra kaydedildi.");
+            setMsg("Sıraya Alındı listesindeki kişisel sıra kaydedildi.");
             setDirty(false);
             await fetchData();
         } catch (e) {
@@ -338,6 +341,9 @@ export default function InboxModern() {
         const text = `${r.id} ${r.baslik} ${r.talep_eden_email} ${r.atanan_email || ""} ${r.talep_eden_kullanici || ""} ${r.atanan_kullanici || ""}`.toLowerCase();
         return text.includes(q.toLowerCase());
     });
+
+    // LİSTE görünümü için: yalnızca Sıraya Alındı statüsündekiler sıralanabilir
+    const filteredEligible = filtered.filter((r) => r.durum === STATUS.SirayaAlindi);
 
     const grouped = groupByStatus(filtered);
 
@@ -410,8 +416,8 @@ export default function InboxModern() {
                         <button
                             className={`btn ${dirty ? "primary" : "ghost"}`}
                             onClick={saveOrder}
-                            disabled={!dirty || saving}
-                            title="Kişisel sıranı kaydet"
+                            disabled={!dirty || saving || filteredEligible.length === 0}
+                            title="Sıraya Alındı listesindeki kişisel sıranı kaydet"
                         >
                             Sıramı Kaydet
                         </button>
@@ -454,8 +460,13 @@ export default function InboxModern() {
                                                     >
                                                         {(pp) => (
                                                             <div ref={pp.innerRef} {...pp.draggableProps} {...pp.dragHandleProps}>
-                                                                <Card data={item} onOpen={() => setActive(item)} me={myEmail} />
+                                                                <Card
+                                                                    data={item}
+                                                                    onOpen={() => setActive(item)}
+                                                                    me={myEmail}
+                                                                />
                                                             </div>
+
                                                         )}
                                                     </Draggable>
                                                 ))}
@@ -469,12 +480,15 @@ export default function InboxModern() {
                     </div>
                 </DragDropContext>
             ) : (
+                // LİSTE: yalnızca Sıraya Alındı statüsündekiler sürüklenebilir ve kaydedilebilir
                 <DragDropContext onDragEnd={onListDragEnd}>
-                    <Droppable droppableId="listMine">
+                    <Droppable droppableId="listEligible">
                         {(provided) => (
                             <div className="listv" ref={provided.innerRef} {...provided.droppableProps}>
-                                {filtered.length === 0 && <div className="col-empty">Kayıt bulunamadı</div>}
-                                {filtered.map((r, index) => (
+                                {filteredEligible.length === 0 && (
+                                    <div className="col-empty">Sıraya Alındı statüsünde kayıt yok</div>
+                                )}
+                                {filteredEligible.map((r, index) => (
                                     <Draggable draggableId={String(r.id)} index={index} key={r.id}>
                                         {(pp) => (
                                             <div
@@ -501,7 +515,7 @@ export default function InboxModern() {
                                 ))}
                                 {provided.placeholder}
                                 <div className="hint" style={{ padding: 8, opacity: 0.7 }}>
-                                    {dirty ? "Kaydet'e basarak kişisel sıralamayı kalıcı hale getir." : "Bu listede sürüklediğin sıra sadece senin kuyruğunu etkiler (Kaydet ile)."}
+                                    Bu listede yalnızca <b>Sıraya Alındı</b> statüsündeki kayıtları sürükleyerek kişisel kuyruğunu düzenleyebilirsin. Diğer statülerdeki kayıtlar burada sıralanamaz.
                                 </div>
                             </div>
                         )}
@@ -604,8 +618,10 @@ export default function InboxModern() {
 /* components */
 function Card({ data, onOpen, me }) {
     const mine = data.atanan_email && data.atanan_email === me;
+    const prio = String(data.oncelik || "P3").toLowerCase(); // p1|p2|p3
+
     return (
-        <div className={`card ${mine ? "mine" : ""}`} onClick={onOpen}>
+        <div className={`card ${mine ? "mine" : ""} prio-${prio}`} onClick={onOpen}>
             <div className="c-title">#{data.id} — {data.baslik}</div>
             <div className="c-desc">{data.aciklama || "—"}</div>
         </div>

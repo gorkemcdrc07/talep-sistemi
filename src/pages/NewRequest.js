@@ -16,10 +16,19 @@ export default function NewRequest() {
 
     // --- auth/profile
     const me = useMemo(() => {
-        try { return JSON.parse(localStorage.getItem("user_profile") || "{}"); }
-        catch { return {}; }
+        try {
+            return JSON.parse(localStorage.getItem("user_profile") || "{}");
+        } catch {
+            return {};
+        }
     }, []);
     const myEmail = me?.email || "";
+
+    // Bu kullanıcı “atanan” listesinde mi? (Talep Listesi butonu için)
+    const isAssigneeUser = useMemo(
+        () => ASSIGNEES.includes(me?.kullanici || ""),
+        [me]
+    );
 
     // --- guard
     useEffect(() => {
@@ -37,18 +46,29 @@ export default function NewRequest() {
     const [err, setErr] = useState("");
     const [notice, setNotice] = useState(null); // {type, title, message}
 
-    // attachments UI state
+    // attachments UI state (GÖRSELLER ZORUNLU DEĞİL)
     const [uploads, setUploads] = useState([]); // [{name,url,path}]
     const [uploading, setUploading] = useState(false);
+
     const fileInputRef = useRef(null);
     const descRef = useRef(null);
 
     // --- draft autosave
-    useEffect(() => { localStorage.setItem("nr_title", title); }, [title]);
-    useEffect(() => { localStorage.setItem("nr_desc", description); }, [description]);
-    useEffect(() => { localStorage.setItem("nr_prio", priority); }, [priority]);
-    useEffect(() => { localStorage.setItem("nr_due", dueDate); }, [dueDate]);
-    useEffect(() => { localStorage.setItem("nr_assignee", assigneeName); }, [assigneeName]);
+    useEffect(() => {
+        localStorage.setItem("nr_title", title);
+    }, [title]);
+    useEffect(() => {
+        localStorage.setItem("nr_desc", description);
+    }, [description]);
+    useEffect(() => {
+        localStorage.setItem("nr_prio", priority);
+    }, [priority]);
+    useEffect(() => {
+        localStorage.setItem("nr_due", dueDate);
+    }, [dueDate]);
+    useEffect(() => {
+        localStorage.setItem("nr_assignee", assigneeName);
+    }, [assigneeName]);
 
     const showNotice = (type, message, title = type === "success" ? "Kayıt oluşturuldu" : "Hata") => {
         setNotice({ type, title, message });
@@ -64,7 +84,10 @@ export default function NewRequest() {
     function computeSLA(prio) {
         // P1=24s, P2=72s, P3=7g
         const now = Date.now();
-        const add = prio === "P1" ? 24 * 60 * 60 * 1000 : prio === "P2" ? 72 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
+        const add =
+            prio === "P1" ? 24 * 60 * 60 * 1000 :
+                prio === "P2" ? 72 * 60 * 60 * 1000 :
+                    7 * 24 * 60 * 60 * 1000;
         return new Date(now + add).toISOString();
     }
 
@@ -110,9 +133,11 @@ export default function NewRequest() {
 
     async function uploadImage(file) {
         if (!IMAGE_MIME.includes(file.type)) throw new Error("Sadece görsel dosyaları yükleyebilirsiniz.");
-        if (file.size > MAX_FILE_MB * 1024 * 1024) throw new Error(`Dosya çok büyük (>${MAX_FILE_MB}MB).`);
+        if (file.size > MAX_FILE_MB * 1024 * 1024) throw new Error(`Dosya çok büyük (> ${MAX_FILE_MB}MB).`);
 
-        const key = `${(myEmail || "anon").split("@")[0]}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${sanitizeName(file.name)}`;
+        const key = `${(myEmail || "anon").split("@")[0]}/${Date.now()}-${Math.random()
+            .toString(36)
+            .slice(2, 8)}-${sanitizeName(file.name)}`;
 
         const { error: upErr } = await supabase
             .storage
@@ -140,7 +165,8 @@ export default function NewRequest() {
                 const item = await uploadImage(f);
                 results.push(item);
             }
-            // açıklamaya markdown olarak ekle
+
+            // açıklamaya markdown olarak ekle (Görseller ZORUNLU DEĞİL)
             const md = results.map(r => `![${r.name}](${r.url})`).join("\n");
             setDescription(prev => (prev ? `${prev}\n\n${md}` : md));
             setUploads(prev => [...prev, ...results]);
@@ -185,19 +211,32 @@ export default function NewRequest() {
         const dt = ev.dataTransfer;
         if (dt?.files?.length) handleFiles(dt.files);
     }
-    function onDragOver(ev) { ev.preventDefault(); }
+    function onDragOver(ev) {
+        ev.preventDefault();
+    }
+
+    // Talep Listesi (inbox) butonu
+    const goToInbox = () => {
+        // Assignee kullanıcı adına göre filtre veriyoruz
+        navigate(`/inbox?assignee=${encodeURIComponent(me?.kullanici || "")}`);
+        // Eğer sisteminiz e-posta ile filtreliyorsa üstteki yerine şunu kullanın:
+        // navigate(`/inbox?atanan_email=${encodeURIComponent(myEmail)}`);
+    };
 
     // -------------------------------------------------
-
     async function handleSubmit(e) {
         e.preventDefault();
         setErr("");
 
         const t = title.trim();
         const desc = description.trim();
+        const due = dueDate.trim();
 
+        // TÜM ALANLAR ZORUNLU (görsel hariç)
         if (!t) return showNotice("error", "Başlık zorunludur.");
+        if (!desc) return showNotice("error", "Açıklama zorunludur.");
         if (!assigneeName) return showNotice("error", "Atanacak kişiyi seçiniz.");
+        if (!due) return showNotice("error", "Hedef tarih zorunludur.");
         if (!myEmail) return showNotice("error", "Kullanıcı e-postası bulunamadı.");
 
         try {
@@ -217,11 +256,13 @@ export default function NewRequest() {
                 null;
 
             // --- KUYRUK SIRASI
+            // .not('durum','in',...) yerine çift .neq kullanarak güvenli ilerliyoruz
             const { count: openCount } = await supabase
                 .from("talepler")
                 .select("*", { count: "exact", head: true })
                 .eq("atanan_email", atanan_email)
-                .not("durum", "in", ["Tamamlandi", "Reddedildi"]);
+                .neq("durum", "Tamamlandi")
+                .neq("durum", "Reddedildi");
             const queuePos = (openCount ?? 0) + 1;
 
             // --- KOLON SIRASI
@@ -237,8 +278,8 @@ export default function NewRequest() {
             // ---- INSERT
             const row = {
                 baslik: t,
-                aciklama: desc || null,   // 👈 yüklenen görsellerin markdown’ı da burada
-                oncelik: priority,
+                aciklama: desc, // zorunlu
+                oncelik: priority || "P3", // zorunlu mantık: boş kalmasına izin vermiyoruz
                 durum: "Yeni",
                 talep_eden_email: myEmail,
                 talep_eden_kullanici,
@@ -247,11 +288,16 @@ export default function NewRequest() {
                 atanan_sira: queuePos,
                 kolon_sira: nextKolonSira,
                 guncelleme_tarihi: new Date().toISOString(),
-                bitis_tarihi: toISOEndOfDay(dueDate),
-                sla_son_tarih: computeSLA(priority),
+                bitis_tarihi: toISOEndOfDay(due), // zorunlu
+                sla_son_tarih: computeSLA(priority || "P3"),
             };
 
-            const { data, error } = await supabase.from("talepler").insert(row).select("*").single();
+            const { data, error } = await supabase
+                .from("talepler")
+                .insert(row)
+                .select("*")
+                .single();
+
             if (error) {
                 console.error(error);
                 return showNotice("error", "Talep kaydedilemedi.");
@@ -287,12 +333,24 @@ export default function NewRequest() {
                     <div className="logo">📝</div>
                     <div className="bt">
                         <h1>Yeni Talep</h1>
-                        <span className="muted">İş & Süreç Geliştirme</span>
+                        <span className="muted">İş &amp; Süreç Geliştirme</span>
                     </div>
                 </div>
 
                 <div className="cmd">
                     <Link to="/requests" className="btn ghost" title="Taleplerim">📋 Taleplerim</Link>
+
+                    {isAssigneeUser && (
+                        <button
+                            type="button"
+                            className="btn"
+                            onClick={goToInbox}
+                            title="Talep Listesi"
+                        >
+                            📨 Talep Listesi
+                        </button>
+                    )}
+
                     <div className="chip" title={myEmail}>{me?.kullanici || myEmail}</div>
                     <button className="btn danger" onClick={handleLogout} type="button" aria-label="Oturumu kapat">
                         Çıkış
@@ -313,25 +371,31 @@ export default function NewRequest() {
                             onChange={(e) => setTitle(e.target.value)}
                             maxLength={160}
                             autoFocus
+                            required
+                            aria-required="true"
                         />
                     </div>
 
                     <div className="row">
-                        <label className="lab">Açıklama</label>
+                        <label className="lab">Açıklama <span className="req">*</span></label>
                         <textarea
                             ref={descRef}
                             className="inp area"
-                            placeholder="Beklenen çıktı, gereksinimler, kapsam… (Görseli sürükle-bırak yapabilir veya yapıştırabilirsin)"
+                            placeholder="Beklenen çıktı, gereksinimler, kapsam… (Görsel isteğe bağlıdır)"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             onPaste={onDescPaste}
                             onDrop={onDrop}
                             onDragOver={onDragOver}
                             rows={10}
+                            required
+                            aria-required="true"
                         />
-                        <div className="hint">URL ve yerleştirdiğin görseller Markdown olarak eklenir.</div>
+                        <div className="hint">
+                            URL ve eklediğin görseller Markdown olarak eklenir. <strong>Görsel yüklemek zorunlu değildir.</strong>
+                        </div>
 
-                        {/* Görsel yükleme alanı */}
+                        {/* Görsel yükleme alanı - ZORUNLU DEĞİL */}
                         <div className="upload-wrap">
                             <div className="drop" onDrop={onDrop} onDragOver={onDragOver}>
                                 <div>Görseli buraya sürükle-bırak yap</div>
@@ -344,16 +408,21 @@ export default function NewRequest() {
                                 >
                                     {uploading ? "Yükleniyor…" : "Dosya Seç"}
                                 </button>
+
                                 <input
                                     ref={fileInputRef}
                                     type="file"
                                     accept={IMAGE_MIME.join(",")}
                                     multiple
                                     hidden
-                                    onChange={(e) => { if (e.target.files) handleFiles(e.target.files); e.target.value = ""; }}
+                                    onChange={(e) => {
+                                        if (e.target.files) handleFiles(e.target.files);
+                                        e.target.value = "";
+                                    }}
                                 />
+
                                 <div className="muted" style={{ marginTop: 8 }}>
-                                    En fazla {MAX_FILES} görsel, {MAX_FILE_MB}MB sınırı (png, jpg, webp, gif).
+                                    En fazla {MAX_FILES} görsel, {MAX_FILE_MB}MB sınırı (png, jpg, webp, gif). Görsel <em>opsiyoneldir</em>.
                                 </div>
                             </div>
 
@@ -380,8 +449,8 @@ export default function NewRequest() {
 
                 <aside className="panel side">
                     <div className="g">
-                        <label className="lab">Öncelik</label>
-                        <div className="prio-seg">
+                        <label className="lab">Öncelik <span className="req">*</span></label>
+                        <div className="prio-seg" role="group" aria-label="Öncelik">
                             {["P1", "P2", "P3"].map(p => (
                                 <button
                                     key={p}
@@ -389,21 +458,36 @@ export default function NewRequest() {
                                     onClick={() => setPriority(p)}
                                     className={`seg ${priority === p ? "on" : ""} ${p.toLowerCase()}`}
                                     aria-pressed={priority === p}
-                                >{p}</button>
+                                >
+                                    {p}
+                                </button>
                             ))}
                         </div>
                         <div className="hint">P1: Kritik (24s), P2: Yüksek (72s), P3: Normal (7g).</div>
                     </div>
 
                     <div className="g">
-                        <label className="lab">Hedef Tarih</label>
-                        <input type="date" className="inp" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                        <label className="lab">Hedef Tarih <span className="req">*</span></label>
+                        <input
+                            type="date"
+                            className="inp"
+                            value={dueDate}
+                            onChange={(e) => setDueDate(e.target.value)}
+                            required
+                            aria-required="true"
+                        />
                         <div className="hint">Seçilirse gün sonu 17:00 olarak kaydedilir.</div>
                     </div>
 
                     <div className="g">
                         <label className="lab">Atanacak Kişi <span className="req">*</span></label>
-                        <select className="inp" value={assigneeName} onChange={(e) => setAssigneeName(e.target.value)}>
+                        <select
+                            className="inp"
+                            value={assigneeName}
+                            onChange={(e) => setAssigneeName(e.target.value)}
+                            required
+                            aria-required="true"
+                        >
                             <option value="">Seçiniz…</option>
                             {ASSIGNEES.map(n => <option key={n} value={n}>{n}</option>)}
                         </select>
@@ -411,13 +495,15 @@ export default function NewRequest() {
                     </div>
 
                     <div className="g">
-                        <label className="lab">Talep Sahibi</label>
+                        <label className="lab">Talep Sahibi <span className="req">*</span></label>
                         <div className="pill show">{me?.kullanici || myEmail}</div>
                     </div>
 
                     <div className="g actions">
-                        <button className="btn ghost" type="button" onClick={clearDraft}>Taslağı Temizle</button>
-                        <button className="btn primary" disabled={loading}>
+                        <button className="btn ghost" type="button" onClick={clearDraft} disabled={loading || uploading}>
+                            Taslağı Temizle
+                        </button>
+                        <button className="btn primary" disabled={loading || uploading}>
                             {loading ? "Kaydediliyor…" : "Talebi Oluştur"}
                         </button>
                     </div>
@@ -442,5 +528,7 @@ export default function NewRequest() {
     );
 
     // -------------- helpers (submit sonrası) --------------
-    async function handleAfterCreate() { /* boş */ }
+    async function handleAfterCreate() {
+        /* boş */
+    }
 }

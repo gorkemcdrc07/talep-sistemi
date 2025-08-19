@@ -691,6 +691,45 @@
     margin-left: auto;
     z-index: 1002;
 }
+/* ----- LED kenarlıklar: P1/P2/P3 ----- */
+/* Temel görünüm: yumuşak parlama + içten hafif ışık */
+.card.prio-p1,
+.rowv.prio-p1 {
+    border: 2px solid rgba(255, 59, 48, 0.9); /* kırmızı */
+    box-shadow: 0 0 6px rgba(255, 59, 48, 0.7), 0 0 14px rgba(255, 59, 48, 0.5), inset 0 0 8px rgba(255, 59, 48, 0.35);
+}
+
+.card.prio-p2,
+.rowv.prio-p2 {
+    border: 2px solid rgba(255, 204, 0, 0.95); /* sarı */
+    box-shadow: 0 0 6px rgba(255, 204, 0, 0.7), 0 0 14px rgba(255, 204, 0, 0.5), inset 0 0 8px rgba(255, 204, 0, 0.35);
+}
+
+.card.prio-p3,
+.rowv.prio-p3 {
+    border: 2px solid rgba(52, 199, 89, 0.9); /* yeşil */
+    box-shadow: 0 0 6px rgba(52, 199, 89, 0.7), 0 0 14px rgba(52, 199, 89, 0.5), inset 0 0 8px rgba(52, 199, 89, 0.35);
+}
+
+/* Kart/satır zaten bir border-radius kullanıyorsa parlamayı güzel göstermek için */
+.card.prio-p1, .card.prio-p2, .card.prio-p3,
+.rowv.prio-p1, .rowv.prio-p2, .rowv.prio-p3 {
+    border-radius: 12px; /* mevcut tasarıma göre ayarla */
+    transition: box-shadow 140ms ease, border-color 140ms ease;
+}
+
+    /* (İsteğe bağlı) hover’da hafif güçlendir */
+    .card.prio-p1:hover, .rowv.prio-p1:hover {
+        box-shadow: 0 0 8px rgba(255, 59, 48, 0.85), 0 0 18px rgba(255, 59, 48, 0.6), inset 0 0 10px rgba(255, 59, 48, 0.45);
+    }
+
+    .card.prio-p2:hover, .rowv.prio-p2:hover {
+        box-shadow: 0 0 8px rgba(255, 204, 0, 0.85), 0 0 18px rgba(255, 204, 0, 0.6), inset 0 0 10px rgba(255, 204, 0, 0.45);
+    }
+
+    .card.prio-p3:hover, .rowv.prio-p3:hover {
+        box-shadow: 0 0 8px rgba(52, 199, 89, 0.85), 0 0 18px rgba(52, 199, 89, 0.6), inset 0 0 10px rgba(52, 199, 89, 0.45);
+    }
 
 
 /* Küçük ekranlar */

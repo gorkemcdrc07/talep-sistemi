@@ -19,6 +19,9 @@ const statusRank = (s) => {
     return i === -1 ? 999 : i;
 };
 
+// Bu kullanıcılar için Requests ekranında "Talep Listesi" butonu gösterilir
+const INBOX_ALLOWED_USERS = ["GÖRKEM ÇADIRCI", "FURKAN BİLGİLİ", "YAĞIZ EFE BULUTCU"];
+
 export default function Requests() {
     const navigate = useNavigate();
 
@@ -32,6 +35,9 @@ export default function Requests() {
     }, []);
     const userEmail = profile?.email || "";
     const userName = profile?.kullanici || userEmail;
+
+    // Bu kullanıcılar "Talep Listesi" butonunu görür
+    const canSeeInboxButton = INBOX_ALLOWED_USERS.includes((profile?.kullanici || "").trim());
 
     // state
     const [rows, setRows] = useState([]);
@@ -98,7 +104,7 @@ export default function Requests() {
         return hay.includes(q.toLowerCase());
     });
 
-    // Sıralama: Durum → Global sıra → Kolon sırası → Son güncelleme (desc) → id
+    // Sıralama: Durum → (Sıraya Alındı ise) Kişisel sıra → Kolon sırası → Son güncelleme (desc) → id
     function dateNum(v) {
         try {
             return new Date(v).getTime() || 0;
@@ -111,9 +117,10 @@ export default function Requests() {
             sb = statusRank(b.durum);
         if (sa !== sb) return sa - sb;
 
-        const ga = a.global_sira ?? 1e9;
-        const gb = b.global_sira ?? 1e9;
-        if (ga !== gb) return ga - gb;
+        // Yalnızca Sıraya Alındı durumunda atanan_sira ile sırala; diğer durumlarda etkisiz
+        const qa = a.durum === "SirayaAlindi" ? (a.atanan_sira ?? 1e9) : 1e9;
+        const qb = b.durum === "SirayaAlindi" ? (b.atanan_sira ?? 1e9) : 1e9;
+        if (qa !== qb) return qa - qb;
 
         const ka = a.kolon_sira ?? 1e9;
         const kb = b.kolon_sira ?? 1e9;
@@ -143,6 +150,10 @@ export default function Requests() {
         navigate("/login", { replace: true });
     }
 
+    // Sıra No görünümü: yalnızca Sıraya Alındı durumunda göster; aksi halde —
+    const renderQueueNo = (r) =>
+        r.durum === "SirayaAlindi" && Number.isFinite(Number(r.atanan_sira)) ? r.atanan_sira : "—";
+
     return (
         <div className="rq">
             {/* Üst bar */}
@@ -157,11 +168,27 @@ export default function Requests() {
 
                 <div className="cmd">
                     <div className="search-wrap">
-                        <input className="search" placeholder="Ara: #id, başlık, kişi…" value={q} onChange={(e) => setQ(e.target.value)} />
+                        <input
+                            className="search"
+                            placeholder="Ara: #id, başlık, kişi…"
+                            value={q}
+                            onChange={(e) => setQ(e.target.value)}
+                        />
                     </div>
 
+                    {/* Yalnızca yetkili kullanıcılar için Talep Listesi (Inbox) kısayolu */}
+                    {canSeeInboxButton && (
+                        <Link to="/inbox" className="btn ghost" title="Kendi gelen kutunu aç">
+                            Talep Listesi
+                        </Link>
+                    )}
+
                     <label className="toggle">
-                        <input type="checkbox" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} />
+                        <input
+                            type="checkbox"
+                            checked={onlyOpen}
+                            onChange={(e) => setOnlyOpen(e.target.checked)}
+                        />
                         <span>Devam edenler</span>
                     </label>
 
@@ -213,15 +240,21 @@ export default function Requests() {
                                         <td className="mono"># {r.id}</td>
                                         <td className="title">{r.baslik}</td>
                                         <td>
-                                            <span className={`badge s-${(STATUS_LABEL[r.durum] || "Yeni").toLowerCase().replace(/\s+/g, "-")}`}>
+                                            <span
+                                                className={`badge s-${(STATUS_LABEL[r.durum] || "Yeni")
+                                                    .toLowerCase()
+                                                    .replace(/\s+/g, "-")}`}
+                                            >
                                                 {STATUS_LABEL[r.durum] || "Yeni"}
                                             </span>
                                         </td>
                                         <td>
-                                            <span className={`pill ${String(r.oncelik || "P3").toLowerCase()}`}>{r.oncelik || "P3"}</span>
+                                            <span className={`pill ${String(r.oncelik || "P3").toLowerCase()}`}>
+                                                {r.oncelik || "P3"}
+                                            </span>
                                         </td>
-                                        {/* GLOBAL SIRA */}
-                                        <td className="mono">{r.global_sira ?? "—"}</td>
+                                        {/* KİŞİSEL SIRA: yalnızca Sıraya Alındı durumunda göster */}
+                                        <td className="mono">{renderQueueNo(r)}</td>
                                         <td>{r.atanan_kullanici || r.atanan_email || "—"}</td>
                                         <td className="mono">{fmtDateTime(r.guncelleme_tarihi)}</td>
                                     </tr>
@@ -233,7 +266,9 @@ export default function Requests() {
                             <span className="pill p1">P1</span>
                             <span className="pill p2">P2</span>
                             <span className="pill p3">P3</span>
-                            <span className="muted">– Sıralama: Durum → Global sıra → Kolon sırası → Son güncelleme</span>
+                            <span className="muted">
+                                – Sıralama: Durum → (Sıraya Alındı ise) Kişisel sıra → Kolon sırası → Son güncelleme
+                            </span>
                         </div>
                     </div>
                 )}
